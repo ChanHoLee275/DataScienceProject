@@ -1,7 +1,11 @@
-import os
 import sys
+import os
+import numpy as np
+import pandas as pd
 
-command = sys.argv
+command = sys.argv = "apriori.py 5 input.txt ouput.txt".split()
+
+currentDictionary = os.getcwd()
 
 try :
     if len(command) != 4:
@@ -15,21 +19,34 @@ MinimumSupport = command[1]
 InputFileName = command[2]
 OutputFileName = command[3]
 
-InputData = open(InputFileName,'r')
-OutputData = open(OutputFileName,'w')
+InputData = open(currentDictionary + '/project1/' + InputFileName,'r')
+OutputData = open(currentDictionary + '/project1/' + OutputFileName,'w')
 
 ## Data 읽어오기
-Data = list()
+RawData = list()
 while 1:
     transaction = InputData.readline().split('\t')
     transaction[-1] = transaction[-1][:-1]
     if transaction == [''] :
         break
     transaction = list(map(int, transaction)) ## str2int in list
-    Data.append(transaction)
+    RawData.append(transaction)
+
+## remove ID
+data = pd.DataFrame(RawData)
+items = data.loc[:,[1,2,3,4,5,6,7,8,9,10,11]]
+print(items.head())
+
+## Initially, scan DB once to get frequent 1-itemset ==> hash table을 사용해서, key를 item으로 설정하면 좋을 듯
+
+## Generate candidate itemsets of length (k+1) from frequent itemsets of length k ==> 기존의 데이터를 넣어주면, 이를 활용해서 새로운 데이터들을 hash table에 추가하는 형식으로
+
+## Test the candidates against DB ==> hash table의 key를 기준으로 확인!
+
+## Terminate when no frequent or candidate set can be generated ==> 종료조건
 
 ## 결과 저장하기
-for i in Data:
+for i in RawData:
     for j in i:
         result = "{%d}\t{%d}\t%d\t%d\n" %(i[0],i[0],i[0],i[0])
         OutputData.write(result)
