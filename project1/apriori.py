@@ -22,30 +22,38 @@ OutputFileName = command[3]
 InputData = open(currentDictionary + '/project1/' + InputFileName,'r')
 OutputData = open(currentDictionary + '/project1/' + OutputFileName,'w')
 
-## Data 읽어오기
+# Data 읽어오기
 RawData = list()
 while 1:
-    transaction = InputData.readline().split('\t')
-    transaction[-1] = transaction[-1][:-1]
+    transaction = InputData.readline().replace("\n","").split('\t')
     if transaction == [''] :
         break
-    transaction = list(map(int, transaction)) ## str2int in list
+    transaction = list(map(int, transaction)) # str2int in list
     RawData.append(transaction)
 
-## remove ID
+# remove ID
 data = pd.DataFrame(RawData)
-items = data.loc[:,[1,2,3,4,5,6,7,8,9,10,11]]
-print(items.head())
+items = data.iloc[:,[1,2,3,4,5,6,7,8,9,10,11]]
 
-## Initially, scan DB once to get frequent 1-itemset ==> hash table을 사용해서, key를 item으로 설정하면 좋을 듯
+# Initially, scan DB once to get frequent 1-itemset ==> hash table을 사용해서, key를 item으로 설정하면 좋을 듯
+(row,column) = items.shape
+NanCheck = items.isna()
+itemset = dict()
+for i in range(row):
+    for j in range(1,column):
+        if pd.api.types.is_float_dtype(items[j][i]) and (not NanCheck[j][i]):
+            if not itemset.get(items[j][i], 0):
+                itemset[str(int(items[j][i]))] = 1
+            else :
+                itemset[str(int(items[j][i]))] += 1
 
-## Generate candidate itemsets of length (k+1) from frequent itemsets of length k ==> 기존의 데이터를 넣어주면, 이를 활용해서 새로운 데이터들을 hash table에 추가하는 형식으로
+# Generate candidate itemsets of length (k+1) from frequent itemsets of length k ==> 기존의 데이터를 넣어주면, 이를 활용해서 새로운 데이터들을 hash table에 추가하는 형식으로
 
-## Test the candidates against DB ==> hash table의 key를 기준으로 확인!
+# Test the candidates against DB ==> hash table의 key를 기준으로 확인!
 
-## Terminate when no frequent or candidate set can be generated ==> 종료조건
+# Terminate when no frequent or candidate set can be generated ==> 종료조건
 
-## 결과 저장하기
+# 결과 저장하기
 for i in RawData:
     for j in i:
         result = "{%d}\t{%d}\t%d\t%d\n" %(i[0],i[0],i[0],i[0])
