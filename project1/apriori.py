@@ -1,10 +1,7 @@
 import os
 import sys
 import math
-import numpy as np
 import time
-
-path = os.getcwd()
 
 def frequent(data,itemset):
   # itemset is dictionary and data is 2d-array, key of dictionary is tuple
@@ -21,7 +18,6 @@ def generate_candidate(itemset):
     new_key = dict()
     past_length = len(key[0])
     now_length = past_length + 1
-    low_key = list()
     # self joining
     for i in range(len(key)):
         for j in range(len(key)):
@@ -40,7 +36,9 @@ def generate_candidate(itemset):
                 candidate_element.append(temp)
 
             if not set(candidate_element).issubset(set(key)):
+
                 flag = 1
+
             if len(candidate) == now_length and flag == 0:
                 new_key[tuple(candidate)] = 0
     return new_key
@@ -60,14 +58,14 @@ def subset(itemset):
         answer.append(subset)
     return answer
 
+start = time.time()
+
+path = os.getcwd()
 
 command = sys.argv
-
 try :
     if len(command) != 4:
         raise Exception("명령어가 잘못 입력되었습니다.")
-    start = time.time()
-    print("명령어가 입력되었습니다 support가 "+command[1]+"%로 진행됩니다.")
 except Exception as e:
     print("명령어를 문법에 맞게 사용하여 주세요. ex. apriori.py 5 input.txt output.txt")
     exit()
@@ -89,21 +87,22 @@ while 1:
     transaction = list(map(int, transaction)) ## str2int in list
     RawData.append(transaction)
 
-
 itemset = dict()
-numberofdata = len(RawData)
+
+NumberOfData = len(RawData)
+
 for i in RawData:
     for j in i:
         if not itemset.get((j,),0):
             itemset[(j,)] = 0
 
-print(time.time()-start)
-
 # Check frequent 1-itemset
 itemset = frequent(RawData,itemset)
+
 low_key = list()
+
 for i in itemset.keys():
-    if itemset[i]/numberofdata*100 < MinimumSupport:
+    if itemset[i]/NumberOfData*100 < MinimumSupport:
         low_key.append(i)
 for i in low_key:
     del itemset[i]
@@ -114,37 +113,44 @@ new_itemset = itemset
 while True:
   # generate candidate
     new_itemset = generate_candidate(new_itemset)
+
   # check candidate
     new_itemset = frequent(RawData,new_itemset)
+
+  # remove candidate  
+
     low_key = list()
+
     for i in new_itemset.keys():
-        if new_itemset[i]/numberofdata*100 < MinimumSupport:
+        if new_itemset[i]/NumberOfData*100 < MinimumSupport:
             low_key.append(i)
+
     for i in low_key:
         del new_itemset[i]
-    print(time.time()-start)
+
   # if result is NULL, stop the generate candidate
+
     if new_itemset == dict():
         break
     else :
         itemset.update(new_itemset)
+
 # calculate support and confidence
+
 for i in itemset.keys():
+    
     element = subset(i)
+
     for j in element:
+
         if len(i) == 1:
-            before = i
-            support = itemset[i]/numberofdata*100
-            support = round(support,2)
-            after = ''
-            confidence = ''
-            string = "{"+','.join(str(int(k)) for k in list(before))+"}\t"+"{"+after+"}\t"+str(support)+"\t"+str(confidence)+"\n"
+            break
+
         else : 
-            before = set(i).difference(j)
-            before = list(before)
+            before = list(set(i).difference(j))
             before.sort()
             after = j
-            support = itemset[i]/numberofdata*100
+            support = itemset[i]/NumberOfData*100
             confidence = itemset[i]/itemset[tuple(before)]*100
             support = round(support,2)
             confidence = round(confidence,2)
@@ -153,3 +159,4 @@ for i in itemset.keys():
 
 OutputData.close()
 InputData.close()
+print(time.time() - start,'s')
