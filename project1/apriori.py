@@ -154,7 +154,7 @@ for i in itemset.keys():
             confidence = itemset[i]/itemset[tuple(before)]*100
             support = round(support,2)
             confidence = round(confidence,2)
-            string = "{"+','.join(str(int(k)) for k in list(before))+"}\t"+"{"+','.join(str(int(l)) for l in list(after))+"}\t"+str(support)+"\t"+str(confidence)+"\n"
+            string = "{"+','.join(str(int(k)) for k in list(before))+"}\t"+"{"+','.join(str(int(l)) for l in list(after))+"}\t"+'{0:.2f}'.format(support)+"\t"+str(confidence)+"\n"
             OutputData.write(string)
 
 OutputData.close()
