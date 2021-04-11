@@ -62,7 +62,7 @@ start = time.time()
 
 path = os.getcwd()
 
-command = sys.argv = ['','5','input.txt','output.txt']
+command = sys.argv
 try :
     if len(command) != 4:
         raise Exception("명령어가 잘못 입력되었습니다.")
