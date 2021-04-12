@@ -125,7 +125,7 @@ def fit(data,category,model):
        
 path = os.getcwd()
 
-command = sys.argv = ["a","dt_train1.txt","dt_test1.txt",'dt_answer.txt']
+command = sys.argv
 
 try :
     if len(command) != 4:
@@ -152,6 +152,15 @@ root = Node(train)
 category = train.columns
 
 tree(train,category,root)
+
+(row,column) = train.shape
+
+output = np.empty((row,1),dtype=object)
+count = 0
+for i in range(row):
+    if train.iloc[i,-1] == fit(train.iloc[i,:],category,root):
+        count += 1
+print(count,'/',row)
 
 (row,column) = test.shape
 
