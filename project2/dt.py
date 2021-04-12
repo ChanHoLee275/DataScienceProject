@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import os
+import sys
 
 class Node:
     def __init__(self,value):
@@ -28,7 +29,7 @@ def InformationGain(data,target1,target2):
     
     for i in range(len(weight)):
         group = data.where(data[target2] == weight[i]).dropna()
-        answer += count[i]/np.sum(count)*entropy(group, target2)
+        answer += count[i]/np.sum(count)*entropy(group, target1)
     
     answer -= total_entropy
     return -answer
@@ -68,25 +69,28 @@ def gini(data,target):
 
 def tree(data,category,parent):
     # 종료 조건
-    
-    if len(data) == 0:
+    column = data[category[-1]]
+
+    elements,count = np.unique(column,return_counts=True)
+
+    if len(elements) == 1:
         return
-    
-    elif len(data) == np.sum(data[category[-1]]):
+
+    elif len(data) == 0:
         return
     
     else :
         # find feature
         max_measure = 0
-        divide = category[-1]
+        divide = None
         for i in range(len(category)-1):
             measure = InformationGain(data, category[-1], category[i])
             if measure > max_measure:
                 divide = category[i]
                 max_measure = measure
-
         # grow tree
-        elements,count = np.unique(data,return_counts=True)
+        column = data[divide]
+        elements,count = np.unique(column,return_counts=True)
 
         for i in range(len(elements)):
             group = data.where(data[divide] == elements[i]).dropna()
@@ -98,26 +102,30 @@ def tree(data,category,parent):
         parent.category = divide
 
 def fit(data,category,model):
+    count = 0
     while(model.child != list()):
+        if count != 0:
+            break
         divide = model.category
         for i in model.child:
+            count += 1
             if i.flag == data[divide]:
-                model = model.child
-    column = model.data[-1]
+                model = i
+                count = 0
+                break
+    column = model.data[category[-1]]
     elements, count = np.unique(column,return_counts=True)
     maximum = 0
-    label = None
+    label = elements[0]
     for i in range(len(elements)):
         if maximum < count[i]:
             maximum = count[i]
             label = elements[i]
-    answer = data
-    answer[0][-1] = label
-    return answer
+    return label
        
 path = os.getcwd()
 
-command = sys.argv
+command = sys.argv = ["a","dt_train1.txt","dt_test1.txt",'dt_answer.txt']
 
 try :
     if len(command) != 4:
@@ -134,19 +142,22 @@ save = command[3]
 
 TrainData = open(os.path.join(path,train),'r')
 TestData = open(os.path.join(path,test),'r')
-SaveResult = open(os.path.join(path,result),'w')
-
-category = TrainData.readline().replace("\n","").split("\t")
+SaveResult = open(os.path.join(path,save),'w')
 
 train = pd.read_csv(TrainData,sep="\t")
 test = pd.read_csv(TestData,sep="\t")
 
 root = Node(train)
-tree(data,category,root)
+
+category = train.columns
+
+tree(train,category,root)
 
 (row,column) = test.shape
-output = np.empty(1,column)
+
+output = np.empty((row,1),dtype=object)
 for i in range(row):
-    output = np.append(output,fit(test.iloc[i,:],category,root),axis=0)
-
-
+    output[i] = fit(test.iloc[i,:],category,root)
+output = pd.DataFrame(data=output)
+test[category[-1]] = output
+test.to_csv(SaveResult,sep="\t")
