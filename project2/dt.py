@@ -54,17 +54,21 @@ def gini(data,target):
     answer = 0
     column = data[target]
     elements, count = np.unique(column,return_counts=True)
-
-    for i in range(len(elements)):
-        group = data.where(data[target] == elements[i]).dropna()
-        group = group[target]
-        subelements, subcount = np.unique(group,return_counts=True)
-        gini = 1
-        for j in range(len(subelements)):
-            gini -= np.power(subcount[j]/np.sum(subcount),2)
-   
+    gini = 1
+    if len(elements) == 2:
+        for i in range(len(elements)):
+            gini -= np.power(count[i]/np.sum(count),2)
         answer += count[i]/np.sum(count)*gini
-    
+    elif len(elements) == 1:
+        raise GiniIndexError
+    else :
+        before_count = 0
+        for i in range(len(elements)-1):
+            before_count += count[i]
+        gini -= np.power(before_count/np.sum(count),2)
+        gini -= np.power(count[-1]/np.sum(count),2)
+        answer += before_count/np.sum(count)*gini
+        answer += count[-1]/np.sum(count)*gini
     return answer
 
 def tree(data,category,parent):
@@ -84,7 +88,7 @@ def tree(data,category,parent):
         max_measure = 0
         divide = None
         for i in range(len(category)-1):
-            measure = InformationGain(data, category[-1], category[i])
+            measure = GainRatio(data, category[-1], category[i])
             if measure > max_measure:
                 divide = category[i]
                 max_measure = measure
