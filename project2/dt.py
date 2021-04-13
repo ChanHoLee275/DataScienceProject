@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import numpy as np
 import pandas as pd
 import os
@@ -60,7 +61,7 @@ def gini(data,target):
             gini -= np.power(count[i]/np.sum(count),2)
         answer += count[i]/np.sum(count)*gini
     elif len(elements) == 1:
-        raise GiniIndexError
+        return 0
     else :
         before_count = 0
         for i in range(len(elements)-1):
@@ -88,7 +89,7 @@ def tree(data,category,parent):
         max_measure = 0
         divide = None
         for i in range(len(category)-1):
-            measure = GainRatio(data, category[-1], category[i])
+            measure = GainRatio(data, category[-1],category[i])
             if measure > max_measure:
                 divide = category[i]
                 max_measure = measure
@@ -169,8 +170,27 @@ print(count,'/',row)
 (row,column) = test.shape
 
 output = np.empty((row,1),dtype=object)
+
 for i in range(row):
     output[i] = fit(test.iloc[i,:],category,root)
 output = pd.DataFrame(data=output)
 test[category[-1]] = output
-test.to_csv(SaveResult,sep="\t")
+
+for i in range(len(test.columns)):
+    SaveResult.write(test.columns[i])
+    if len(test.columns) - 1 == i :
+        SaveResult.write("\n")
+    else :
+        SaveResult.write('\t')
+
+for i in range(row):
+    for j in range(column+1):
+        SaveResult.write(test.iloc[i,j])
+        if j == column:
+            SaveResult.write("\n")
+        else :
+            SaveResult.write("\t")
+
+TrainData.close()
+TestData.close()
+SaveResult.close()
