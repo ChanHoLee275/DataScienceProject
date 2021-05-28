@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import os
 import sys
+import copy
 import matplotlib.pyplot as plt
 
 np.random.seed(0)
@@ -38,6 +39,20 @@ class DBSCAN:
                 continue
         return 0
 
+    def plot(self):
+        unique_labels = set(model.cluster)
+        colors = [plt.cm.gist_rainbow(each) for each in np.linspace(0, 1, len(unique_labels))]
+        plt.figure(figsize=[8, 8])
+        model.data = pd.DataFrame(model.data)
+        for cluster_index, col in zip(unique_labels, colors):
+            if cluster_index == -1:
+                col = [0, 0, 0, 1]
+            class_mask = (model.cluster == cluster_index)
+            plt.plot(model.data.values[class_mask][:, 1], 
+                    model.data.values[class_mask][:, 2], 
+                    'o', markerfacecolor=tuple(col), markeredgecolor=tuple(col), 
+                    markersize=1)
+
     def expanding(self,candidate,clusterNumber):
         # 특정 점들을 받아드려서, cluster인지 아닌지 확인하는 메소드
         row = candidate.shape[0]
@@ -60,23 +75,48 @@ class DBSCAN:
         # expanding 메소드와 checking 메소드를 활용하여 clustering 하는 메소드
         clusterNumber = 1
         while True:
+
             i = np.random.randint(0,self.data.shape[0])
+            
+            while self.checked[i] != 0:
+                i = np.random.randint(0,self.data.shape[0])
+
+            self.checked[i] = 1
+            
             (count,index) = self.countdistance(self.data[i,1:3])
+
             if count >= self.minPts:
+
                 if np.sum(self.cluster[index]) == 0:
+
                     self.checked[int(self.data[i,0])] = 1
                     self.cluster[index] = clusterNumber
                     candidate = self.checking(clusterNumber)
+                    
                     while candidate.size != 0:
                         self.expanding(candidate,clusterNumber)
                         candidate = self.checking(clusterNumber)
+
                     if clusterNumber != 1 and self.unionCluster(clusterNumber):
                         clusterNumber -= 1
+                    
                     else :
                         print("cluster",clusterNumber,"is done!")
-                    if clusterNumber == self.NumberOfCluster:
-                        break
                     clusterNumber += 1
+            
+            if np.sum(self.checked) == self.data.shape[0]:
+                counts = list()
+                for j in range(1,clusterNumber+1):
+                    counts.append(np.sum(self.cluster == j))
+                        
+                while len(counts) != self.NumberOfCluster:
+                    minimum = min(counts)
+                    idx = counts.index(minimum)
+                    self.cluster[self.cluster == idx + 1] = 0
+                    counts.pop(idx)
+                    self.data = self.data[self.cluster != 0]
+                    self.cluster = self.cluster[self.cluster != 0]
+                break
 
         return self.cluster
                 
