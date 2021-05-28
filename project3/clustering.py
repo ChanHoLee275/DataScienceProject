@@ -1,28 +1,90 @@
-from typing import ContextManager
 import numpy as np
 import pandas as pd
 import os
 import sys
-import copy
+import matplotlib.pyplot as plt
 
-def countdistance(point,array2d,minimum):
-    minus = array2d - point
-    distance = (minus[:,0]**2 + minus[:,1]**2)**0.5
-    count = np.less_equal(distance,minimum)
-    return np.sum(count), count
+np.random.seed(0)
 
-def training(candidate, array2d,cluster,minimum,minPts,clusterNumber):
-    row = candidate.shape[0]
-    for i in range(row):
-        (count,index) = countdistance(candidate[i,:],array2d,minimum)
-        if np.sum(cluster[index] == 0 ) and count >= minPts:
-            cluster[index] = clusterNumber
-            cluster = training(array2d[index], array2d,cluster,minimum,minPts,clusterNumber)
-    return cluster
+class DBSCAN:
+
+    def __init__(self,data,n,eps,minPts):
+        self.data = data
+        self.NumberOfCluster = n
+        self.eps = eps
+        self.minPts = minPts
+        self.cluster = np.zeros(self.data.shape[0]).reshape(self.data.shape[0])
+        self.checked = np.zeros(self.data.shape[0]).reshape(self.data.shape[0])
+
+    def countdistance(self,point):
+        # 모든 점과 밀도를 계산하는 한 점 사이의 거리를 계산하고 점을 기준으로 반경 안에 얼마나 점이 있는지 계산하는 메소드
+        minus = self.data[:,1:3] - point
+        distance = (minus[:,0]**2 + minus[:,1]**2)**0.5
+        count = np.less_equal(distance,self.eps)
+        return np.sum(count), count
+
+    def unionCluster(self,clusterNumber):
+        _index = self.cluster == clusterNumber
+        candidate = self.data[_index]
+        for i in range(candidate.shape[0]):
+            (count,index) = self.countdistance(candidate[i,1:3])
+            cluster = self.cluster[index]
+            if count >= self.minPts:
+                for j in range(count):
+                    if cluster[j] != clusterNumber:
+                        self.cluster[_index] = cluster[j]
+                        return 1
+            else :
+                continue
+        return 0
+
+    def expanding(self,candidate,clusterNumber):
+        # 특정 점들을 받아드려서, cluster인지 아닌지 확인하는 메소드
+        row = candidate.shape[0]
+        for i in range(row):
+            if self.checked[int(candidate[i,0])] == 1:
+                continue
+            (count,index) = self.countdistance(candidate[i,1:3])
+            self.checked[int(candidate[i,0])] = 1
+            if count >= self.minPts:
+                self.cluster[index] = clusterNumber
+    
+    def checking(self,clusterNumber):
+        # 특정 클러스터의 모든 점을 조사하여 더 이상 확장이 불가능하다고 판단하면, 빈 배열을 반환, 확장 가능하면 고려해야 할 점들을 반환
+        cluster = (self.cluster == clusterNumber)
+        checked = self.checked[cluster]
+        index = np.logical_and(cluster,(np.logical_not(self.checked)))
+        return self.data[index]
+    
+    def training(self):
+        # expanding 메소드와 checking 메소드를 활용하여 clustering 하는 메소드
+        clusterNumber = 1
+        while True:
+            i = np.random.randint(0,self.data.shape[0])
+            (count,index) = self.countdistance(self.data[i,1:3])
+            if count >= self.minPts:
+                if np.sum(self.cluster[index]) == 0:
+                    self.checked[int(self.data[i,0])] = 1
+                    self.cluster[index] = clusterNumber
+                    candidate = self.checking(clusterNumber)
+                    while candidate.size != 0:
+                        self.expanding(candidate,clusterNumber)
+                        candidate = self.checking(clusterNumber)
+                    if clusterNumber != 1 and self.unionCluster(clusterNumber):
+                        clusterNumber -= 1
+                    else :
+                        print("cluster",clusterNumber,"is done!")
+                    if clusterNumber == self.NumberOfCluster:
+                        break
+                    clusterNumber += 1
+
+        return self.cluster
+                
+
 
 dir = os.getcwd()
 
-command = sys.argv = ["clustering.py" ,"input1.txt", "8", "15", "22"]
+command = sys.argv
 
 try :
     if len(command) != 5:
@@ -35,52 +97,19 @@ Inputfile = os.path.join(dir,command[1])
 n = int(command[2])
 eps = int(command[3])
 minPts = int(command[4])
-Outputfile = command[1]+"_cluster_"
+Outputfile = command[1][:-4]+"_cluster_"
 
 # read Input file
 Input = pd.read_csv(Inputfile,sep="\t",header=None).to_numpy()
-cluster = np.zeros(Input.shape[0]).reshape(Input.shape[0],1)
 
-# clustering start
-i = np.random.randint(0,Input.shape[0])
-before_cluster = copy.deepcopy(cluster)
-clusterNumber = 1
+model = DBSCAN(Input,n,eps,minPts)
+model.training()
 
-while True:
-    (count,index) = countdistance(Input[i,:],Input,eps)
-    if count >= minPts:
-        if np.sum(cluster[index] == 0) == count:
-            cluster[index] = clusterNumber
-            cluster = training(Input[index],Input,cluster,eps,minPts,clusterNumber)
-            clusterNumber += 1
-    else :
-        i = np.random.randint(0,Input.shape[0])
-    if np.sum(before_cluster == cluster) == Input.shape[0]:
-        break
-    else :
-        before_cluster = copy.deepcopy(cluster)
-
-Input[3] = cluster
-
-for i in range(n):
-    Outputfile += str(i) + ".txt"
-    index = Input[:,3] == i
-    Output = Input[index,0]
-    Output[1] = Input[index,3]
-    Output.to_csv(Outputfile,sep="\t")
-
-"""
-for i in range(Input.shape[0]):
-    (count,index) = countdistance(Input[i,:],Input,eps)
-    if count >= minPts:
-        if np.sum(cluster[index] == 0) == count:
-            cluster[index] = clusterNumber
-            clusterNumber += 1
-        else :
-            clustered = cluster[cluster[index] != 0]
-            cluster[index] = clustered[0]
-    else :
-        continue
-    if np.sum(cluster != 0) == Input.shape[0]:
-        break
-"""
+# write result
+for i in range(0,n):
+    fileName = Outputfile+str(i)+".txt"
+    clusterData = model.data[model.cluster == i+1]
+    clusterData = np.array(clusterData[:,0],dtype=np.int64)
+    clusterData = pd.DataFrame(clusterData)
+    path = os.path.join(dir,fileName)
+    clusterData.to_csv(path,index=False,header=None)
