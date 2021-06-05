@@ -57,6 +57,7 @@ for i in range(len(train)):
     postUseMatrix[train[i,0]-1,train[i,1]-1] = train[i,2]
     preUseMatrix[train[i,0]-1,train[i,1]-1] = 1
 
+<<<<<<< HEAD
 # make pre-use matrix ( 0 - 1 rating matrix and fill in the blank use WRMF method ) // WRMF 조사 // 완료
 
 model1 = WRMF.WRMF(preUseMatrix)
@@ -96,6 +97,9 @@ model2.train()
 end = time.time()
 
 (row,column) = model2.model.shape
+=======
+# make pre-use matrix ( 0 - 1 rating matrix and fill in the blank use WRMF method ) // WRMF 구현
+>>>>>>> 57ec4d93c9b7d3920c053de10449aa4aac360d4e
 
 for i in range(row):
     index1 = model2.model[i,:] < 0

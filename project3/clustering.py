@@ -2,7 +2,6 @@ import numpy as np
 import pandas as pd
 import os
 import sys
-import copy
 import matplotlib.pyplot as plt
 
 np.random.seed(0)
@@ -67,7 +66,6 @@ class DBSCAN:
     def checking(self,clusterNumber):
         # 특정 클러스터의 모든 점을 조사하여 더 이상 확장이 불가능하다고 판단하면, 빈 배열을 반환, 확장 가능하면 고려해야 할 점들을 반환
         cluster = (self.cluster == clusterNumber)
-        checked = self.checked[cluster]
         index = np.logical_and(cluster,(np.logical_not(self.checked)))
         return self.data[index]
     
