@@ -37,7 +37,7 @@ for i in range(len(train)):
     postUseMatrix[train[i,0]-1,train[i,1]-1] = train[i,2]
     preUseMatrix[train[i,0]-1,train[i,1]-1] = 1
 
-# make pre-use matrix ( 0 - 1 rating matrix and fill in the blank use WRMF method ) // WRMF 조사
+# make pre-use matrix ( 0 - 1 rating matrix and fill in the blank use WRMF method ) // WRMF 구현
 
 # conversion pre-use matrix to post-use matrix by specific method // pre-use matrix를 어떻게 반영할 것인지에 대해서 조사
 
