@@ -3,14 +3,12 @@ import sys
 import time
 import numpy as np
 import pandas as pd
-import WRMF
-import copy
 import GradientDescent
 
 start = time.time()
 path = os.getcwd()
 
-command = sys.argv = ["a",'u4.base','u4.test']
+command = sys.argv = ["1",'u5.base','u5.test']
 
 try :
     if len(command) != 3:
@@ -29,7 +27,11 @@ def RMSE(post,label):
         predict = post[label[i,0]-1,label[i,1]-1]
         array[i,0] = label[i,0]
         array[i,1] = label[i,1]
-        array[i,2] = predict
+        array[i,2] = np.around(predict)
+        if array[i,2] > 5:
+            array[i,2] = 5
+        elif array[i,2] < 1:
+            array[i,2] = 1
         answer = label[i,2]
         output += np.power((predict-answer),2)
     return np.sqrt(output/row), array
@@ -47,7 +49,14 @@ train = pd.read_csv(TrainDataPath,sep='\t',header=None).to_numpy()
 test = pd.read_csv(TestDataPath,sep='\t',header=None).to_numpy()
 
 # convert raw data to rating matrix (post-use matrix) and make pre-use matrix
-maximum = np.amax(train,axis=0)
+maximum1 = np.amax(train,axis=0)
+maximum2 = np.amax(test,axis=0)
+maximum = list()
+for i in range(2):
+    if maximum1[i] > maximum2[i]:
+        maximum.append(maximum1[i])
+    else :
+        maximum.append(maximum2[i])
 start = time.time()
 postUseMatrix = np.zeros(maximum[0]*maximum[1]).reshape(maximum[0],maximum[1])
 preUseMatrix = np.zeros(maximum[0]*maximum[1]).reshape(maximum[0],maximum[1])
@@ -57,10 +66,9 @@ for i in range(len(train)):
     postUseMatrix[train[i,0]-1,train[i,1]-1] = train[i,2]
     preUseMatrix[train[i,0]-1,train[i,1]-1] = 1
 
-<<<<<<< HEAD
 # make pre-use matrix ( 0 - 1 rating matrix and fill in the blank use WRMF method ) // WRMF 조사 // 완료
 
-model1 = WRMF.WRMF(preUseMatrix)
+model1 = GradientDescent.GradientDescent(preUseMatrix)
 model1.train()
 
 # pre-use matrix trancate
@@ -71,24 +79,19 @@ for i in range(row):
     index2 = model1.model[i,:] > 1
     model1.model[i,:][index1] = 0
     model1.model[i,:][index2] = 1
-index = np.where(preUseMatrix == 1)
-print(abs(model1.model[index] - preUseMatrix[index]).sum()/(row*column))
 
 # conversion pre-use matrix to post-use matrix by specific method
-index = np.where(preUseMatrix != 1)
-vector = copy.deepcopy(model1.model[index])
-vector = np.reshape(vector,row*column)
-threshold1 = np.sort(vector)[::-1][int(0.3*len(vector))]
-threshold2 = np.sort(vector)[::-1][int(0.5*len(vector))]
-
-print(threshold1, threshold2)
+threshold1 = 0.4
+threshold2 = 0.8
 # predicting the data using WRMF
 
 for i in range(row):
-    index1 = np.logical_and(model1.model[i,:] >= threshold1, model1.model[i,:] != 1)
-    index2 = np.logical_and(model1.model[i,:] >= threshold2, model1.model[i,:] < threshold1)
-    postUseMatrix[i,:][index1] = 2
-    postUseMatrix[i,:][index2] = 1
+    for j in range(column):
+        if preUseMatrix[i,j] == 0:
+            if model1.model[i,j] > threshold2:
+                postUseMatrix[i,j] = 2
+            elif model1.model[i,j] > threshold1:
+                postUseMatrix[i,j] = 1
 
 model2 = GradientDescent.GradientDescent(postUseMatrix)
 
@@ -97,9 +100,6 @@ model2.train()
 end = time.time()
 
 (row,column) = model2.model.shape
-=======
-# make pre-use matrix ( 0 - 1 rating matrix and fill in the blank use WRMF method ) // WRMF 구현
->>>>>>> 57ec4d93c9b7d3920c053de10449aa4aac360d4e
 
 for i in range(row):
     index1 = model2.model[i,:] < 0
@@ -113,6 +113,6 @@ output = np.array(model2.model,dtype=np.int64)
 (performance,prediction) = RMSE(model2.model,test)
 print("Test Result : ",performance)
 # save the data to txt file format
-OutputFile = os.path.join(path,command[1] + "prediction.txt")
+OutputFile = os.path.join(path,command[1] + "_prediction.txt")
 prediction = pd.DataFrame(prediction)
-prediction.to_csv(OutputFile,sep="\t",header=None)
+prediction.to_csv(OutputFile,sep="\t",header=None,index=False)

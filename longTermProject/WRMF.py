@@ -6,7 +6,7 @@ from scipy.sparse.linalg import spsolve
 
 class WRMF:
     
-    def __init__(self, data, factors = 20, iteration = 60, regulation = 0.02):
+    def __init__(self, data, factors = 30, iteration = 40, regulation = 0.02):
         self.data = sparse.csr_matrix(data)
         self.users = data.shape[0]
         self.items = data.shape[1]

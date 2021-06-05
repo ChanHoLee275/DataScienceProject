@@ -2,7 +2,7 @@ import numpy as np
 
 class GradientDescent:
 
-    def __init__(self,data,crit = 0.005,learning_rate = 0.01,regular = 0.01,iter = 1000,factor = 40):
+    def __init__(self,data,crit = 0.005,learning_rate = 0.01,regular = 0.01,factor = 50):
     
         self.data = data
         self.users = data.shape[0]
@@ -56,9 +56,7 @@ class GradientDescent:
         cost = np.sqrt(cost)
         cost /= len(self.mask[0])
 
-        cost = np.sqrt(cost)
-
-        cost = cost / count
+        cost = np.sqrt(cost/count)
 
         self.cost = cost
 
