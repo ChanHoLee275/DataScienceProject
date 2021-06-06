@@ -8,7 +8,7 @@ import GradientDescent
 start = time.time()
 path = os.getcwd()
 
-command = sys.argv = ["1",'u5.base','u5.test']
+command = sys.argv
 
 try :
     if len(command) != 3:
@@ -114,5 +114,5 @@ print("Test Result : ",performance)
 # save the data to txt file format
 OutputFile = os.path.join(path,command[1] + "_prediction.txt")
 prediction = np.array(prediction,dtype=np.int64)
-prediction = pd.DataFrame(prediction)
+prediction = pd.DataFrame(prediction,dtype=np.int64)
 prediction.to_csv(OutputFile,sep="\t",header=None,index=False)
