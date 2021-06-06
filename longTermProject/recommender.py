@@ -83,7 +83,6 @@ for i in range(row):
 # conversion pre-use matrix to post-use matrix by specific method
 threshold1 = 0.4
 threshold2 = 0.8
-# predicting the data using WRMF
 
 for i in range(row):
     for j in range(column):
@@ -114,5 +113,6 @@ output = np.array(model2.model,dtype=np.int64)
 print("Test Result : ",performance)
 # save the data to txt file format
 OutputFile = os.path.join(path,command[1] + "_prediction.txt")
+prediction = np.array(prediction,dtype=np.int64)
 prediction = pd.DataFrame(prediction)
 prediction.to_csv(OutputFile,sep="\t",header=None,index=False)
