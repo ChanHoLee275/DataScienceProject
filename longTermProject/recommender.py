@@ -64,10 +64,10 @@ preUseMatrix = np.zeros(maximum[0]*maximum[1]).reshape(maximum[0],maximum[1])
 
 for i in range(len(train)):
     postUseMatrix[train[i,0]-1,train[i,1]-1] = train[i,2]
-    preUseMatrix[train[i,0]-1,train[i,1]-1] = 1
+    '''preUseMatrix[train[i,0]-1,train[i,1]-1] = 1'''
 
 # make pre-use matrix ( 0 - 1 rating matrix and fill in the blank use WRMF method ) // WRMF 조사 // 완료
-
+'''
 model1 = GradientDescent.GradientDescent(preUseMatrix)
 model1.train()
 
@@ -79,11 +79,13 @@ for i in range(row):
     index2 = model1.model[i,:] > 1
     model1.model[i,:][index1] = 0
     model1.model[i,:][index2] = 1
-
+'''
+'''
 # conversion pre-use matrix to post-use matrix by specific method
-threshold1 = 0.4
+threshold1 = 0.7
 threshold2 = 0.8
-
+'''
+'''
 for i in range(row):
     for j in range(column):
         if preUseMatrix[i,j] == 0:
@@ -91,8 +93,8 @@ for i in range(row):
                 postUseMatrix[i,j] = 2
             elif model1.model[i,j] > threshold1:
                 postUseMatrix[i,j] = 1
-
-model2 = GradientDescent.GradientDescent(postUseMatrix)
+'''
+model2 = GradientDescent.GradientDescent(postUseMatrix,crit=0.001,factor=8)
 
 model2.train()
 
