@@ -94,7 +94,7 @@ for i in range(row):
             elif model1.model[i,j] > threshold1:
                 postUseMatrix[i,j] = 1
 '''
-model2 = GradientDescent.GradientDescent(postUseMatrix,crit=0.001,factor=1)
+model2 = GradientDescent.GradientDescent(postUseMatrix,crit=0.01,factor=1)
 
 model2.train()
 
