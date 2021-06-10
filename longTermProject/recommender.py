@@ -36,6 +36,13 @@ def RMSE(post,label):
         output += np.power((predict-answer),2)
     return np.sqrt(output/row), array
 
+def cosineSimilarity(vector1,vector2):
+    index1 = vector1 != 0
+    index2 = vector2 != 0
+    index = np.logical_and(index1,index2)
+    if np.sum(index) == 0:
+        return 0
+    return np.dot(vector1[index],vector2[index])/(np.sqrt(np.sum(vector1[index] ** 2))*np.sqrt(np.sum(vector2[index]**2)))
 
 # read data
 
@@ -60,13 +67,34 @@ for i in range(2):
 start = time.time()
 postUseMatrix = np.zeros(maximum[0]*maximum[1]).reshape(maximum[0],maximum[1])
 preUseMatrix = np.zeros(maximum[0]*maximum[1]).reshape(maximum[0],maximum[1])
-
+'answer =  np.zeros(maximum[0]*maximum[1]).reshape(maximum[0],maximum[1])'
 
 for i in range(len(train)):
     postUseMatrix[train[i,0]-1,train[i,1]-1] = train[i,2]
     '''preUseMatrix[train[i,0]-1,train[i,1]-1] = 1'''
+'''
+# find similar group
+for i in range(postUseMatrix.shape[0]):
+    index = list()
+    flag = 0
+    print(i,end="")
+    start = time.time()
+    for j in range(postUseMatrix.shape[0]):
+        similarity = cosineSimilarity(postUseMatrix[i,:],postUseMatrix[j,:])
+        if similarity > 0.7:
+            index.append(True)
+            flag += 1
+        else :
+            index.append(False)
+    model = GradientDescent(postUseMatrix[index],crit=0.01,factor=8)
+    model.train()
+    target = model.model[flag-1,:]
+    answer[i,:] = target
 
-# make pre-use matrix ( 0 - 1 rating matrix and fill in the blank use WRMF method ) // WRMF 조사 // 완료
+    end = time.time()
+    print(" ",end - start)
+'''
+# make pre-use matrix ( 0 - 1 rating matrix and fill in the blank use WRMF method ) // not use
 '''
 model1 = GradientDescent.GradientDescent(preUseMatrix)
 model1.train()
